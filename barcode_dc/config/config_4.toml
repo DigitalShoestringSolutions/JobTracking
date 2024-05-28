@@ -29,7 +29,7 @@ platform = "fd500000.pcie-pci-0000:01:00.0"
 
 [service_layer.mqtt]
     broker="mqtt.docker.local"
-    port=8883
+    port=1883
     base_topic_template = ""
 
     #reconnection characteristics
