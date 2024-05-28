@@ -117,8 +117,6 @@ services:
             extends:
                 file: mqtt_broker/app.yml
                 service: app
-            ports:
-                - "8883:8883"
             networks:
                 internal:
                     aliases:
