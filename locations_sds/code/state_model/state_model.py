@@ -125,6 +125,7 @@ class StateModel:
                         'id':job.id,
                         'state':'exited',
                         'location':old_location
+                        'timestamp':job.timestamp.isoformat() if isinstance(job.timestamp,datetime) else job.timestamp,
                         }
                 print(exit_msg)
                 self.pushsocket.send_multipart(["state/update/exited".encode(),json.dumps(exit_msg).encode()])
