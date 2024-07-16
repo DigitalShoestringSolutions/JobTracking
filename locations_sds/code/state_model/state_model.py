@@ -124,7 +124,7 @@ class StateModel:
                 exit_msg = {
                         'id':job.id,
                         'state':'exited',
-                        'location':old_location
+                        'location':old_location,
                         'timestamp':job.timestamp.isoformat() if isinstance(job.timestamp,datetime) else job.timestamp,
                         }
                 print(exit_msg)
