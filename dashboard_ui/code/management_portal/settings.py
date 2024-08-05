@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'dashboard',
+    'whitenoise',
     'channels',
     'shoestring_wrapper',
 ]
