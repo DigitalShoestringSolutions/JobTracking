@@ -62,8 +62,8 @@ class BarcodeScanner(multiprocessing.Process):
 
         self.udev_ctx = pyudev.Context()
 
-        logger.info("Looking for barcode reader with serial number {sn} on connection point {cp}".format(
-            sn=self.scanner_serial, cp=self.connection_point))
+        logger.info("Looking for barcode reader with serial number {sn} on connection point {cp} for platform {pl}".format(
+            sn=self.scanner_serial, cp=self.connection_point,pl=self.platform))
 
         for dev in self.udev_ctx.list_devices(subsystem='input', ID_BUS='usb'):
             if dev.device_node is not None:
@@ -82,7 +82,7 @@ class BarcodeScanner(multiprocessing.Process):
                                 if self.connection_point[i] != cp_entries[i]:
                                     match = False
                                     break
-                            if match and self.platform not in platform:
+                            if self.platform != '*' and match and self.platform not in platform:
                                 match = False
 
                             if not match:
@@ -101,12 +101,13 @@ class BarcodeScanner(multiprocessing.Process):
 
                 try:
                     if dev.properties['ID_INPUT_KEYBOARD'] == "1":
-                        _, connection_point = dev.properties['ID_PATH'].split('-usb-')
+                        platform, connection_point = dev.properties['ID_PATH'].split('-usb-')
                         serial_option_1 = dev.properties['ID_SERIAL']
                         serial_option_2 = f"{dev.properties['ID_VENDOR_ID']}_{dev.properties['ID_MODEL_ID']}"
                         logger.info(
                             f"available: {serial_option_1} or "
-                            f"{serial_option_2} on connection point {connection_point.split(':')}")
+                            f"{serial_option_2} on connection point {connection_point.split(':')} "
+                            f"for platform {platform}")
                 except Exception as e:
                     logger.error(e)
 
