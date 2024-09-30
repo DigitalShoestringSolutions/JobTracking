@@ -1,8 +1,12 @@
 #!/bin/env bash
+echo "This helper program detects the Serial Number, and USB platform and connection point of a connected USB device."
+echo "---------------------------------------------------------------------------------------------------------------"
+echo "It will start now..."
+echo ""
 
 while true; do
     # Prompt the user to plug in the USB device
-    echo "Please unplug the USB device and press Enter to continue."
+    echo "If the USB device is plugged in, please unplug the USB device now. Press Enter to continue."
     read -r
     sleep 3s
     # Get the initial list of connected USB devices
@@ -32,7 +36,11 @@ while true; do
     platform=$(echo "$removed_input" | sed 's/.*platform-\(.*\)-usb.*/\1/' | uniq)
     connection_port=$(echo "$removed_input" | sed 's/.*-usb-\([^:]*:[^:]*\).*/\1/' | uniq) # sed 's/.*platform-\(.*\)\..*/\1/')
 
-    echo -e  "ID: \t \t \t $ID"
+    echo -e  "Serial: \t \t \t $ID"
     echo -e  "Platform: \t \t $platform"
     echo -e  "Connection Point: \t $connection_port \n"
+	
+	echo "Check another USB device? Press Enter to continue or Control and c to stop."
+	read -r
+	sleep 3
 done
