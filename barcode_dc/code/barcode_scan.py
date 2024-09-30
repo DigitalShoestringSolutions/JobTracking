@@ -82,7 +82,7 @@ class BarcodeScanner(multiprocessing.Process):
                                 if self.connection_point[i] != cp_entries[i]:
                                     match = False
                                     break
-                            if self.platform != '*' and match and self.platform not in platform:
+                            if match and self.platform != '*' and self.platform not in platform:
                                 match = False
 
                             if not match:
