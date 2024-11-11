@@ -8,7 +8,7 @@ while true; do
     # Prompt the user to plug in the USB device
     echo "If the USB device is plugged in, please unplug the USB device now. Press Enter to continue."
     read -r
-    sleep 3s
+    sleep 1s
     # Get the initial list of connected USB devices
     initial_devices=$(lsusb| sort)
     initial_inputs=$(ls -l /dev/input/by-path | sort)
@@ -18,7 +18,7 @@ while true; do
     # Prompt the user to plug in the USB device
     echo "Please plug in the USB device and press Enter to continue."
     read -r
-    sleep 3s
+    sleep 1s
     # Get the updated list of connected USB devices
     updated_devices=$(lsusb | sort)
     updated_inputs=$(ls -l /dev/input/by-path | sort)
@@ -43,5 +43,5 @@ while true; do
 
     echo "Check another USB device? Press Enter to continue or Control and c to stop."
     read -r
-    sleep 3
+    sleep 1s
 done
