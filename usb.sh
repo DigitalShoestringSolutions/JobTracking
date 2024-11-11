@@ -36,12 +36,12 @@ while true; do
     platform=$(echo "$removed_input" | sed 's/.*platform-\(.*\)-usb.*/\1/' | uniq)
     connection_port=$(echo "$removed_input" | sed 's/.*-usb-\([^:]*:[^:]*\).*/\1/' | uniq) # sed 's/.*platform-\(.*\)\..*/\1/')
 
-    echo -e  "Serial: \t \t \t $ID"
+    echo -e  "Serial: \t \t $ID"
     echo -e  "Connection Point: \t $connection_port"
     echo -e  "Platform: \t \t $platform"
-	echo ""
+    echo ""
 
-	echo "Check another USB device? Press Enter to continue or Control and c to stop."
-	read -r
-	sleep 3
+    echo "Check another USB device? Press Enter to continue or Control and c to stop."
+    read -r
+    sleep 3
 done
