@@ -37,8 +37,8 @@ while true; do
     connection_port=$(echo "$removed_input" | sed 's/.*-usb-\([^:]*:[^:]*\).*/\1/' | uniq) # sed 's/.*platform-\(.*\)\..*/\1/')
 
     echo -e  "Serial: \t \t \t $ID"
-    echo -e  "Platform: \t \t $platform"
     echo -e  "Connection Point: \t $connection_port \n"
+    echo -e  "Platform: \t \t $platform"
 	
 	echo "Check another USB device? Press Enter to continue or Control and c to stop."
 	read -r
