@@ -1,21 +1,21 @@
 from django.shortcuts import render
 from django.conf import settings
 import requests
-from shoestring_wrapper.wrapper import Wrapper
 
 def location_dash(request):
-    
-    state = Wrapper.get().request('statedb/state/jobs')
-    locations_raw = Wrapper.get().request('statedb/state/locations')
+    response = requests.get("http://job-db.docker.local/state/jobs")
+    state =  response.json()
+    response = requests.get("http://job-db.docker.local/state/locations")
+    locations_raw = response.json()
     locations = []
-    
+
     fields_shown = settings.LOC_FIELDS_SHOWN
     field_names = settings.LOC_FIELD_NAMES
     fields = {'shown':fields_shown,'names':field_names}
 
     for entry in locations_raw:
         locations += [ entry['name'] ]
-    
+
     return render(
             request,
             'locations.html',
@@ -31,13 +31,13 @@ def location_dash(request):
         )
 
 def job_dash(request):
-    state = Wrapper.get().request('statedb/state/jobs')
-  
+    response = requests.get("http://job-db.docker.local/state/jobs")
+    state = response.json()
+
     fields_shown = settings.JOB_FIELDS_SHOWN
     field_names = settings.JOB_FIELD_NAMES
-    
-    fields = {'shown':fields_shown,'names':field_names}
 
+    fields = {'shown':fields_shown,'names':field_names}
 
     return render(
             request,

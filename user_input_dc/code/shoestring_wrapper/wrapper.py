@@ -1,183 +1,123 @@
-import threading
-import socket
 import paho.mqtt.client as mqtt
-import asyncio
-import requests
+import multiprocessing
+import logging
+import zmq
 import json
+import time
+from urllib.parse import urljoin
+
+context = zmq.Context()
+logger = logging.getLogger("main.wrapper")
 
 
-class MQTTMonitorThread(threading.Thread):
-    def __init__(self, name, channel_layer, mqtt_config, channel_groups, topics=[]):
-        threading.Thread.__init__(self)
-        self.name = name
-        self.channel_layer = channel_layer
-        self.topics = topics
-        self.mqtt_config = mqtt_config
-        self.channel_groups = channel_groups
+class MQTTServiceWrapper(multiprocessing.Process):
+
+    def __init__(self, mqtt_conf, zmq_conf):
+        super().__init__()
+
+        self.url = mqtt_conf["broker"]
+        self.port = int(mqtt_conf["port"])
+        self.client_id = mqtt_conf["id"]
+
+        self.topic_base = mqtt_conf["base_topic_template"]
+        self.subscriptions = mqtt_conf.get("subscriptions", [])
+
+        if mqtt_conf.get("reconnect"):
+            self.initial = mqtt_conf["reconnect"].get("initial", 5)
+            self.backoff = mqtt_conf["reconnect"].get("backoff", 2)
+            self.limit = mqtt_conf["reconnect"].get("limit", 60)
+        else:
+            self.initial = 5
+            self.backoff = 2
+            self.limit = 60
+
+        # declarations
+        self.zmq_conf = zmq_conf
+        self.zmq_in = None
+        self.zmq_out = None
+
+    def do_connect(self):
+        zmq_in_conf = self.zmq_conf["wrapper_in"]
+        self.zmq_in = context.socket(zmq_in_conf["type"])
+        if zmq_in_conf["bind"]:
+            self.zmq_in.bind(zmq_in_conf["address"])
+        else:
+            self.zmq_in.connect(zmq_in_conf["address"])
+
+        zmq_out_conf = self.zmq_conf["wrapper_out"]
+        self.zmq_out = context.socket(zmq_out_conf["type"])
+        if zmq_out_conf["bind"]:
+            self.zmq_out.bind(zmq_out_conf["address"])
+        else:
+            self.zmq_out.connect(zmq_out_conf["address"])
+
+    def mqtt_connect(self, client, first_time=False):
+        timeout = self.initial
+        exceptions = True
+        while exceptions:
+            try:
+                if first_time:
+                    client.connect(self.url, self.port, 60)
+                else:
+                    logger.error("Attempting to reconnect...")
+                    client.reconnect()
+                logger.info("Connected!")
+                time.sleep(self.initial)  # to give things time to settle
+                exceptions = False
+            except Exception:
+                logger.error(f"Unable to connect, retrying in {timeout} seconds")
+                time.sleep(timeout)
+                if timeout < self.limit:
+                    timeout = timeout * self.backoff
+                else:
+                    timeout = self.limit
+
+    def on_connect(self, client, _userdata, _flags, rc):
+        logger.info("Connected with result code " + str(rc))
+        # do subscribe
+        for entry in self.subscriptions:
+            if "topic" in entry:
+                qos = entry.get("qos", 0)
+                topic = entry["topic"]
+                logger.info(f"Subscribing to {topic} at QOS {qos}")
+                client.subscribe(topic, qos)
+
+    def on_message(self, _client, _userdata, msg):
+        output = {"topic": msg.topic, "payload": json.loads(msg.payload)}
+        logger.info(f"Forwarding {output}")
+        self.zmq_out.send_json(output)
+
+    def on_disconnect(self, client, _userdata, rc):
+        if rc != 0:
+            logger.error(f"Unexpected MQTT disconnection (rc:{rc}), reconnecting...")
+            self.mqtt_connect(client)
 
     def run(self):
-        print("Starting " + self.name)
-        try:
-            loop = asyncio.get_event_loop()
-        except RuntimeError:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-        loop.run_until_complete(
-            AsyncMqttLoop(self.name, loop, self.channel_layer, self.channel_groups, self.mqtt_config,
-                          self.topics).run())
-        loop.close()
-        print("Exiting " + self.name)
+        self.do_connect()
 
-
-class AsyncioHelper:
-    def __init__(self, loop, client):
-        self.loop = loop
-        self.client = client
-        self.client.on_socket_open = self.on_socket_open
-        self.client.on_socket_close = self.on_socket_close
-        self.client.on_socket_register_write = self.on_socket_register_write
-        self.client.on_socket_unregister_write = self.on_socket_unregister_write
-
-    def on_socket_open(self, client, userdata, sock):
-        print("MQTT> Socket opened")
-
-        def cb():
-            client.loop_read()
-
-        self.loop.add_reader(sock, cb)
-        self.misc = self.loop.create_task(self.misc_loop())
-
-    def on_socket_close(self, client, userdata, sock):
-        print("MQTT> Socket closed")
-        self.loop.remove_reader(sock)
-        self.misc.cancel()
-
-    def on_socket_register_write(self, client, userdata, sock):
-        print("MQTT> Watching socket for writability.")
-
-        def cb():
-            client.loop_write()
-
-        self.loop.add_writer(sock, cb)
-
-    def on_socket_unregister_write(self, client, userdata, sock):
-        print("MQTT> Stop watching socket for writability.")
-        self.loop.remove_writer(sock)
-
-    async def misc_loop(self):
-        while self.client.loop_misc() == mqtt.MQTT_ERR_SUCCESS:
-            try:
-                await asyncio.sleep(1)
-            except asyncio.CancelledError:
-                break
-
-
-class AsyncMqttLoop:
-    def __init__(self, client_id, loop, channel_layer, channel_groups, mqtt_config, topics=[]):
-        self.client_id = client_id
-        self.loop = loop
-        self.channel_layer = channel_layer
-        self.channel_groups = channel_groups
-        self.mqtt_config = mqtt_config
-        self.initial_topics = topics
-
-    def on_connect(self, client, userdata, flags, rc):
-        print(
-            "MQTT> {id}: subscribing to initial topics: {topics}".format(id=self.client_id, topics=self.initial_topics))
-        for topic in self.initial_topics:
-            client.subscribe(topic)
-
-    def on_message(self, client, userdata, msg):
-        if not self.got_message:
-            print("MQTT> {id}: Got unexpected message: {msg}".format(id=self.client_id, msg=msg.decode()))
-        else:
-            self.got_message.set_result(msg)
-
-    def on_disconnect(self, client, userdata, rc):
-        self.disconnected.set_result(rc)
-
-    async def run(self):
-        self.disconnected = self.loop.create_future()
-
-        self.client = mqtt.Client(client_id=self.client_id)
-        self.client.on_connect = self.on_connect
-        self.client.on_message = self.on_message
-        self.client.on_disconnect = self.on_disconnect
-
-        aioh = AsyncioHelper(self.loop, self.client)
+        client = mqtt.Client(client_id=self.client_id)
+        client.on_connect = self.on_connect
+        client.on_message = self.on_message
+        client.on_disconnect = self.on_disconnect
 
         # self.client.tls_set('ca.cert.pem',tls_version=2)
-        self.client.connect(self.mqtt_config['url'], self.mqtt_config['port'], 60)
+        logger.info(f"connecting to {self.url}:{self.port}")
+        self.mqtt_connect(client, True)
 
-        t1 = asyncio.create_task(self.check_inbound())
-        t2 = asyncio.create_task(self.check_outbound())
-        await asyncio.gather(t1, t2)
-        self.client.disconnect()
-        print("MQTT> Disconnected: {}".format(await self.disconnected))
-
-    async def check_inbound(self):
-        self.got_message = self.loop.create_future()
-        while True:
-            msg = await self.got_message
-            print("MQTT> {id}: Got msg: {msg} on topic {topic}".format(msg=msg.payload, id=self.client_id,
-                                                                       topic=msg.topic))
-
-            await self.channel_layer.group_send(self.channel_groups.in_group,
-                                                {'type': f'{self.channel_groups.in_group}', 'message': msg.payload})
-            self.got_message = self.loop.create_future()
-
-    async def check_outbound(self):
-        while True:
-            payload = await self.channel_layer.receive("wrapper_out")
-            topic = payload['topic']
-            self.client.publish(topic, json.dumps(payload['content']))
-
-
-class Wrapper:
-    inst = None;
-
-    def __init__(self):
-        self.addr_map = {
-            'statedb': 'job-db.docker.local'
-        }
-
-        self.channel_groups = type('obj', (object,), {
-            'in_group': 'wrapper_in',
-            'out_group': 'wrapper_out',
-        })()
-
-        self.mqtt_config = {
-            'url': 'mqtt.docker.local',
-            'port': 1883,
-        }
-        # todo from config
-
-    @classmethod
-    def get(cls):
-        if cls.inst == None:
-            cls.inst = cls()
-        return cls.inst
-
-    @classmethod
-    def start(cls, args):
-        print("Shoestring Wrapper Starting")
-        self = cls.get()
-        t = MQTTMonitorThread("manual_input_ui", args['channel_layer'], self.mqtt_config, self.channel_groups, [])
-        t.start()
-
-    def request(self, endpoint):
-        service_id, path = endpoint.split("/", 1)
-        host = self.get_addr(service_id)
-        url = f"http://{host}/{path}"
-        response = requests.get(url)
-        print(f"got: {response.text}")
-        return response.json()
-
-    def subscribe_to(self):
-        pass
-
-    def publish(self):
-        pass
-
-    def get_addr(self, service_id):
-        return self.addr_map[service_id]
+        run = True
+        while run:
+            while self.zmq_in.poll(50, zmq.POLLIN):
+                try:
+                    msg = self.zmq_in.recv(zmq.NOBLOCK)
+                    msg_json = json.loads(msg)
+                    topic = (
+                        f"{self.topic_base}/{msg_json['topic']}"
+                        if self.topic_base
+                        else msg_json["topic"]
+                    )
+                    msg_payload = msg_json["payload"]
+                    logger.debug(f"pub topic:{topic} msg:{msg_payload}")
+                    client.publish(topic, json.dumps(msg_payload))
+                except zmq.ZMQError:
+                    pass
+            client.loop(0.05)
