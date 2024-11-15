@@ -9,13 +9,8 @@ from zmq.asyncio import Context
 context = Context.instance()
 
 zmq_config = {
-    "wrapper_out": {
-        "type": zmq.PUSH,
-        "address": "tcp://127.0.0.1:6000",
-        "bind": True,
-    },
     "state_in": {
-        "type": zmq.PULL,
+        "type": zmq.SUB,
         "address": "tcp://127.0.0.1:6000",
         "bind": False,
     },
@@ -23,11 +18,6 @@ zmq_config = {
         "type": zmq.PUSH,
         "address": "tcp://127.0.0.1:6001",
         "bind": False,
-    },
-    "wrapper_in": {
-        "type": zmq.PULL,
-        "address": "tcp://127.0.0.1:6001",
-        "bind": True,
     },
 }
 
@@ -40,6 +30,7 @@ class StateUpdateConsumer(AsyncJsonWebsocketConsumer):
             self.zmq_in.bind(zmq_in_conf["address"])
         else:
             self.zmq_in.connect(zmq_in_conf["address"])
+        self.zmq_in.setsockopt(zmq.SUBSCRIBE, b"wrapper_in")
 
         zmq_out_conf = zmq_config["state_out"]
         self.zmq_out = context.socket(zmq_out_conf["type"])
@@ -71,7 +62,8 @@ class StateUpdateConsumer(AsyncJsonWebsocketConsumer):
 
     async def handle_incomming(self):
         while True:
-            msg = await self.zmq_in.recv()
+            raw = await self.zmq_in.recv_multipart()
+            msg = raw[-1]
             msg_json = json.loads(msg)
             await self.mqtt_update(msg_json)
 

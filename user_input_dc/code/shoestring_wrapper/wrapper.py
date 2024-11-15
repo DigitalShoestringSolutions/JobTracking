@@ -85,7 +85,7 @@ class MQTTServiceWrapper(multiprocessing.Process):
     def on_message(self, _client, _userdata, msg):
         output = {"topic": msg.topic, "payload": json.loads(msg.payload)}
         logger.info(f"Forwarding {output}")
-        self.zmq_out.send_json(output)
+        self.zmq_out.send_multipart([b"wrapper_in",json.dumps(output).encode()])
 
     def on_disconnect(self, client, _userdata, rc):
         if rc != 0:

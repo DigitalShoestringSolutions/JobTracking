@@ -12,19 +12,9 @@ import zmq
 
 zmq_config = {
     "wrapper_out": {
-        "type": zmq.PUSH,
+        "type": zmq.PUB,
         "address": "tcp://127.0.0.1:6000",
         "bind": True,
-    },
-    "state_in": {
-        "type": zmq.PULL,
-        "address": "tcp://127.0.0.1:6000",
-        "bind": False,
-    },
-    "state_out": {
-        "type": zmq.PUSH,
-        "address": "tcp://127.0.0.1:6001",
-        "bind": False,
     },
     "wrapper_in": {
         "type": zmq.PULL,
