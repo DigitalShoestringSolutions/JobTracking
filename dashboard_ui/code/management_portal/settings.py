@@ -128,7 +128,7 @@ STATIC_URL = '/static/'
 #        ]
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
-ASGI_APPLICATION = 'management_portal.routing.application'
+ASGI_APPLICATION = 'management_portal.asgi.application'
 
 CHANNEL_LAYERS = {
         'default': {

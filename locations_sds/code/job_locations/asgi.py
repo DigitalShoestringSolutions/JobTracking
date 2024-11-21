@@ -1,11 +1,18 @@
 import os
-from channels.routing import get_default_application
+from channels.routing import ProtocolTypeRouter
+from django.core.asgi import get_asgi_application
 import django
-#from channels.layers import get_channel_layer
+# from channels.layers import get_channel_layer
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'job_locations.settings')
-django.setup()
-application = get_default_application()
+
+django_asgi_app = get_asgi_application()
+
+application = ProtocolTypeRouter(
+    {
+        "http": django_asgi_app,
+    }
+)
 
 import state_model.state_model
 import shoestring_wrapper.wrapper

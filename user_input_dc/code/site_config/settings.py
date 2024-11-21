@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'input',
-    # 'channels',
+    'channels',
     'shoestring_wrapper',
 ]
 
@@ -128,7 +128,7 @@ STATIC_URL = '/static/'
 #        ]
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
-ASGI_APPLICATION = 'site_config.routing.application'
+ASGI_APPLICATION = 'site_config.asgi.application'
 
 CHANNEL_LAYERS = {
         'default': {
