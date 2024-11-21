@@ -14,9 +14,6 @@ from KeyParser.Keyparser import Parser
 context = zmq.asyncio.Context()
 logger = logging.getLogger("main.barcode_scan")
 
-__dt = -1 * (time.timezone if (time.localtime().tm_isdst == 0) else time.altzone)
-tz = datetime.timezone(datetime.timedelta(seconds=__dt))
-
 
 class BarcodeScanner(multiprocessing.Process):
     def __init__(self, config, zmq_conf):
@@ -137,6 +134,10 @@ class BarcodeScanner(multiprocessing.Process):
                 self.parser.parse(event.code, event.value)
                 if self.parser.complete_available():
                     msg_content = self.parser.get_next_string()
+
+                    __dt = -1 * (time.timezone if (time.localtime().tm_isdst == 0) else time.altzone)
+                    tz = datetime.timezone(datetime.timedelta(seconds=__dt))
+
                     timestamp = (datetime.datetime.fromtimestamp(event.sec, tz=tz) + datetime.timedelta(
                         microseconds=event.usec)).isoformat()
                     yield msg_content, timestamp
