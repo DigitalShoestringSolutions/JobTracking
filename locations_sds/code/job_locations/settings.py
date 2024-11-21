@@ -129,7 +129,7 @@ STATIC_URL = "/static/"
 
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
-ASGI_APPLICATION = "job_locations.routing.application"
+ASGI_APPLICATION = 'job_locations.asgi.application'
 
 CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
 

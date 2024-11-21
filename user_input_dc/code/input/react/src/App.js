@@ -295,7 +295,7 @@ function InputBar({ submit }) {
   let [validated, setValidated] = React.useState(false)
 
   let do_submit = () => {
-    let valid = submit(value)
+    let valid = submit(value.trim())
     setValidated(true)
     setValid(valid)
     if (valid) {

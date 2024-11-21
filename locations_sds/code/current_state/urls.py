@@ -9,8 +9,7 @@ def redirect_root(request):
 
 router = routers.DefaultRouter()
 router.register(r'jobs',views.GetState,basename='jobs')
-router.register(r'locations',views.Locations)
+router.register(r"locations", views.Locations, basename="locations")
 router.register(r'^location/(?P<location>\w+)',views.StateAtLocation,basename='location')
 
 urlpatterns= [ path('',redirect_root) ] + router.urls
-
