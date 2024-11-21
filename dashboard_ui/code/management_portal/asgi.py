@@ -4,7 +4,7 @@ from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.security.websocket import AllowedHostsOriginValidator
 from django.core.asgi import get_asgi_application
 import django
-from channels.layers import get_channel_layer
+from django.conf import settings
 import shoestring_wrapper.wrapper
 import dashboard.routing
 
@@ -21,4 +21,20 @@ application = ProtocolTypeRouter(
     }
 )
 
-shoestring_wrapper.wrapper.Wrapper.start({'channel_layer':get_channel_layer()})
+import zmq
+
+zmq_config = {
+    "wrapper_out": {
+        "type": zmq.PUB,
+        "address": "tcp://127.0.0.1:6000",
+        "bind": True,
+    },
+    "wrapper_in": {
+        "type": zmq.PULL,
+        "address": "tcp://127.0.0.1:6001",
+        "bind": True,
+    },
+}
+
+shoestring_wrapper.wrapper.MQTTServiceWrapper(settings.MQTT, zmq_config).start()
+

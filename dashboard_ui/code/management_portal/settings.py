@@ -123,7 +123,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-#STATICFILES_DIRS = [
+# STATICFILES_DIRS = [
 #        os.path.join(BASE_DIR, "static"),
 #        ]
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
@@ -158,6 +158,17 @@ SHOW_DURATION = True
 
 ID_AS_LINK = False
 LINK_TEMPLATE = 'function get_link_href(id,location){ return ""+id }'
+
+MQTT = {
+    "broker": "mqtt.docker.local",
+    "port": 1883,
+    "id": "dashboard",
+    "subscriptions": [
+        {"topic": "+/state/update/#"},
+    ],
+    "base_topic_template": "dashboard",
+    "reconnect": {"initial": 5, "backoff": 2, "limit": 60},
+}
 
 try:
     from config.settings import *  # noqa
