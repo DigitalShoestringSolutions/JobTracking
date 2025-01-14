@@ -80,6 +80,8 @@ services:
             restart: unless-stopped
             env_file:
                 - django_secret_key
+            depends_on:
+              - "job-db"
  
         job-db:
             extends:
