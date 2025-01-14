@@ -36,7 +36,7 @@
 			for (const element of columns){
 				let th = document.createElement("th");
 				th.colSpan = fields.shown.length;//only create columns specified in the config file
-				let text = document.createTextNode(element);
+				let text = document.createTextNode(element + " ["+contents[element].length+"]");
 				th.appendChild(text);
 				headrow.appendChild(th);
 			}
