@@ -16,4 +16,8 @@ Presents a table listing which codes were most recently scanned by each scanner.
 
 ## Usage
 - Configure locations at `localhost:8001/admin`
-- View Grafana dashboards in a web browser: `localhost`
+- View dashboards in a web browser: `localhost`
+
+![image](https://github.com/user-attachments/assets/59199674-9653-44ff-b690-2a7a8bb7b639)
+
+![image](https://github.com/user-attachments/assets/1247020d-f2d5-4858-b24a-fee5c5370d92)
