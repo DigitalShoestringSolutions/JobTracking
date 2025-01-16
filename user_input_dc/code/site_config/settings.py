@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'input',
-    # 'channels',
+    'channels',
     'shoestring_wrapper',
 ]
 
@@ -123,12 +123,12 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-#STATICFILES_DIRS = [
+# STATICFILES_DIRS = [
 #        os.path.join(BASE_DIR, "static"),
 #        ]
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
-ASGI_APPLICATION = 'site_config.routing.application'
+ASGI_APPLICATION = 'site_config.asgi.application'
 
 CHANNEL_LAYERS = {
         'default': {
@@ -158,6 +158,17 @@ SHOW_DURATION = True
 
 ID_AS_LINK = False
 LINK_TEMPLATE = 'function get_link_href(id,location){ return ""+id }'
+
+
+MQTT = {
+    "broker": "mqtt.docker.local",
+    "port": 1883,
+    "id": "user_input",
+    "subscriptions": [
+    ],
+    "base_topic_template": "",
+    "reconnect": {"initial": 5, "backoff": 2, "limit": 60},
+}
 
 try:
     from config.settings import *  # noqa

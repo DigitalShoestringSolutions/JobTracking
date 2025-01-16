@@ -5,12 +5,16 @@ RUN npm -v
 COPY ./code/input/react/ /
 RUN npm run build
 
-FROM digitalshoestring/shoestring-django:v0.0.1
+FROM python:3.11
+# Set environment variables to prevent Python from writing pyc files to disc and buffering stdout and stderr
+ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
-COPY ./requirements.txt /requirements.txt
+
+COPY ./code/requirements.txt /requirements.txt
 RUN pip install -r /requirements.txt && rm -f /requirements.txt
 WORKDIR /app
 ADD ./code /app/
+
 COPY --from=appbuild /build /app/static
 COPY --from=appbuild /build /app/input/static
 COPY --from=appbuild /build/index.html /app/input/templates/index.html
