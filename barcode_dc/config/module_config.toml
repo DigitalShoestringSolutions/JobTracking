@@ -11,7 +11,7 @@ platform = "*"
 [[variable]]
     name="id"
     type="single"
-    pattern="\s*(.*)\s*"
+    pattern='\s*(.*)\s*'
 
 [processing]
     directory="none"
