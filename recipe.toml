@@ -1,0 +1,71 @@
+recipe_vsn = "1.0.0"
+
+[solution]
+    name = "Job Tracking"
+    slug = "job_tracking"
+    version = "1.3.0"
+    description = "Shoestring Job Tracking Starter Solution"
+
+
+[source.barcode_scanning]
+    git.path = "sm_barcode_dc"
+    git.branch = "rc/2.0.0"
+[source.location_sds]
+    file.path = "./custom_service_modules/location_sds"
+    file.mode = "link"
+[source.user_input_ui]
+    file.path = "./custom_service_modules/user_input_dc"
+    file.mode = "link"
+[source.dashboard_ui]
+    file.path = "./custom_service_modules/dashboard_ui"
+    file.mode = "link"
+[source.mqtt_broker]
+    git.path = "sm_mqtt_broker"
+    git.branch = "rc/2.0.0"
+
+
+
+[service_module.scanner-1]
+    source="barcode_scanning"
+    containers = ["sensing"]
+    template.log_level = "warning"
+
+[service_module.scanner-2]
+    source="barcode_scanning"
+    containers = ["sensing"]
+    template.log_level = "warning"
+
+[service_module.scanner-3]
+    source="barcode_scanning"
+    containers = ["sensing"]
+    template.log_level = "warning"
+
+[service_module.scanner-4]
+    source="barcode_scanning"
+    containers = ["sensing"]
+    template.log_level = "warning"
+
+[service_module.job-db]
+    source = "location_sds"
+    containers = ["db"]
+    ports.db.api = 8001
+    alias.db = "job-db"
+
+[service_module.dashboard]
+    source = "dashboard_ui"
+    containers = ["webserver"]
+    ports.webserver.ui = 80
+
+[service_module.user-input]
+    source = "user_input_ui"
+    containers = ["app"]
+    ports.app.ui = 8080
+
+
+
+[infrastructure.mqtt-broker]
+    source = "mqtt_broker"
+    containers = ["broker"]
+    ports.broker.tcp = 1883
+    ports.broker.websocket = 9001
+    alias.broker = "mqtt"
