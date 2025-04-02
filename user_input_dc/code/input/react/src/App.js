@@ -104,13 +104,14 @@ function InputPage() {
       let response = await APIBackend.api_get('http://' + document.location.host + '/static/config/config.json');
       if (response.status === 200) {
         let conf = response.payload
-	console.log("base config ",JSON.stringify(response.payload))
+        console.log("raw base config ", response.payload)
+	      console.log("base config ",JSON.stringify(response.payload))
         if (identifier) {
           let response2 = await APIBackend.api_get('http://' + document.location.host + '/static/config/' + identifier + '.json');
           if (response2.status === 200) {
-	    console.log("extension config ",JSON.stringify(response2.payload))
+	          console.log("extension config ",JSON.stringify(response2.payload))
             conf = overwriteConfig(conf, response2.payload)
-	    console.log("combined config ",JSON.stringify(conf))
+	          console.log("combined config ",JSON.stringify(conf))
           } else {
             console.log("ERROR LOADING IDENTIFIER CONFIG")
             setError("ERROR: Config For " + identifier + " Not Found!")
@@ -211,17 +212,15 @@ function overwriteConfig(original_conf, new_conf) {
   return compiled_conf
 }
 
-function escapeRegex(string) {
-  return string.replace("\\", '\\\\');
-}
 
 function extractVariables(barcode, var_config = [], setVariable) {
   let found = null
   let value = null
   for (let variable of var_config) {
     if (variable.pattern) {
-      let re = new RegExp(escapeRegex(variable.pattern))
+      let re = new RegExp(variable.pattern)
       let match = barcode.match(re)
+      console.log(re,match)
       if (match) {
         found = variable
         value = match[1]
