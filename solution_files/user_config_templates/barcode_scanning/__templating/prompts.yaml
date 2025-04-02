@@ -1,0 +1,4 @@
+---
+- key: location_name
+  text: Choose a location for this barcode scanner
+

@@ -9,9 +9,9 @@ recipe_vsn = "1.0.0"
 
 [source.barcode_scanning]
     git.path = "sm_barcode_dc"
-    git.branch = "rc/2.0.0"
+    git.branch = "main"
 [source.location_sds]
-    file.path = "./custom_service_modules/location_sds"
+    file.path = "./custom_service_modules/locations_sds"
     file.mode = "link"
 [source.user_input_ui]
     file.path = "./custom_service_modules/user_input_dc"

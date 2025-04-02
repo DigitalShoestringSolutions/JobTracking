@@ -1,0 +1,19 @@
+---
+- key: show_duration
+  text: How do you want the jobs arrival times to be presented
+  option:
+    - prompt: "The timestamp when it arrived"
+      value: false
+    - prompt: "The duration it has been there"
+      value: true
+
+- key: job_order
+  text: How do you want jobs to be ordered
+  option:
+    - prompt: "Oldest at the top"
+      value: true
+    - prompt: "Newest at the top"
+      value: false
+
+
+

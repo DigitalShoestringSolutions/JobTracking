@@ -6,7 +6,7 @@ platform = "fd500000.pcie-pci-0000:01:00.0"
 [[variable]]
     name="location"
     type="static"
-    value="Location 1"
+    value="{{location_name}}"
 
 [[variable]]
     name="id"

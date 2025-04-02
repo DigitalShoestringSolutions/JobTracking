@@ -15,9 +15,8 @@ JOB_FIELD_NAMES = {
         }
 
 
-SORT_ORDER_DESCENDING = True
-SHOW_DURATION = True
+SORT_ORDER_DESCENDING = {{job_order}}
+SHOW_DURATION = {{show_duration}}
 
 ID_AS_LINK = False
 LINK_TEMPLATE = 'function get_link_href(id,location){ return "" }'
-
