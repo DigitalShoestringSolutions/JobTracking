@@ -1,14 +1,4 @@
-[input.scanner]
-serial="<Serial Number>"
-connection_point=["*"]
-platform = "*"
-
-[[variable]]
-    name="location"
-    type="static"
-    value="<Location Name Here>"
-
-[[variable]]
+[variable.barcode]
     name="id"
     type="single"
     # Horribly complicated regex that will match any barcode but exclude leading and trailing whitespace while still allowing whitespace in the middle
